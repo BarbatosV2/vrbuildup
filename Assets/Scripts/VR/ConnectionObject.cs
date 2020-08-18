@@ -11,6 +11,7 @@ public enum ConnectionType
 public class ConnectionObject : MonoBehaviour
 {
     public ConnectionType m_objectType;
+    public AttachmentPoint m_attachmentPoint;
 
     // Start is called before the first frame update
     void Start()
