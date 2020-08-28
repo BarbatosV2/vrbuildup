@@ -13,10 +13,9 @@ GameObject:
   - component: {fileID: 9047061870472177154}
   - component: {fileID: 9047061870249916512}
   - component: {fileID: 9047061869819162970}
-  - component: {fileID: 9047061883852266772}
   - component: {fileID: 9047061870229073786}
   - component: {fileID: 8942069347125766809}
-  - component: {fileID: 8942069347125766814}
+  - component: {fileID: 2942651809533754128}
   m_Layer: 0
   m_Name: AttachableObject
   m_TagString: Untagged
@@ -33,7 +32,7 @@ Transform:
   m_GameObject: {fileID: 8942760385471894836}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0.787, y: 1.05, z: -0.172}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.63263, y: 1, z: 1}
   m_Children:
   - {fileID: 8941520256102265564}
   m_Father: {fileID: 0}
@@ -170,23 +169,6 @@ MonoBehaviour:
   onDetachedFromHand:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &9047061883852266772
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8942760385471894836}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 037de2161ddbc6f4e96de7dd85ea6686, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  targetCollider: {fileID: 0}
-  spawnObjectOnCollision: {fileID: 1000012514662164, guid: ada35c93b68ad004d9b4e7bd686cf189,
-    type: 3}
-  colorSpawnedObject: 1
-  destroyOnTargetCollision: 1
 --- !u!114 &9047061870229073786
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -230,7 +212,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_attachments: []
   m_multiAttach: 0
---- !u!114 &8942069347125766814
+--- !u!114 &2942651809533754128
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -239,13 +221,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 8942760385471894836}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad77666522338cf49ba83b80b25e6476, type: 3}
+  m_Script: {fileID: 11500000, guid: aa8a6ad03328b9c4498f3d57bd987a0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attachForce: 800
-  attachForceDamper: 12.5
-  attachMode: 1
-  attachmentFlags: 0
+  m_attachmentFlags: 0
 --- !u!1 &8942760385971791662
 GameObject:
   m_ObjectHideFlags: 0
@@ -274,7 +253,7 @@ Transform:
   m_GameObject: {fileID: 8942760385971791662}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.84577, y: 0.1, z: 0.51149005}
+  m_LocalScale: {x: 0.84577, y: 0.1, z: 0.0870505}
   m_Children: []
   m_Father: {fileID: 8941520258248017502}
   m_RootOrder: 0

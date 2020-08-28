@@ -7,9 +7,13 @@ using Valve.VR.InteractionSystem;
 public class ThrowableSpecial : MonoBehaviour
 {
     public Hand.AttachmentFlags m_attachmentFlags;
+    public ReleaseStyle releaseVelocityStyle = ReleaseStyle.GetFromHand;
+    protected VelocityEstimator velocityEstimator;
+
     private List<Hand> holdingHands = new List<Hand>();
     private List<Rigidbody> holdingBodies = new List<Rigidbody>();
     private List<Vector3> holdingPoints = new List<Vector3>();
+    private List<ConfigurableJoint> holdingJoints = new List<ConfigurableJoint>();
 
     private List<Rigidbody> rigidBodies = new List<Rigidbody>();
 
@@ -17,13 +21,25 @@ public class ThrowableSpecial : MonoBehaviour
     void Start()
     {
         GetComponentsInChildren<Rigidbody>(rigidBodies);
+        velocityEstimator = GetComponent<VelocityEstimator>();
     }
+
+    //private void OnDrawGizmos()
+    //{
+    //    Gizmos.color = Color.red;
+    //    for (int i = 0; i < holdingHands.Count; i++)
+    //    {
+    //        Gizmos.DrawSphere(holdingBodies[i].transform.TransformPoint(holdingPoints[i]),0.05f);
+    //    }
+    //}
 
     // Update is called once per frame
     void Update()  
     {
         for (int i = 0; i < holdingHands.Count; i++)
         {
+            holdingHands[i].skeleton.transform.position = holdingBodies[i].transform.TransformPoint(holdingPoints[i]); 
+
             if (holdingHands[i].IsGrabEnding(this.gameObject))
             {
                 PhysicsDetach(holdingHands[i]);
@@ -59,6 +75,7 @@ public class ThrowableSpecial : MonoBehaviour
             Util.FastRemove(holdingHands, i);
             Util.FastRemove(holdingBodies, i);
             Util.FastRemove(holdingPoints, i);
+            Util.FastRemove(holdingJoints, i);
 
             return true;
         }
@@ -99,8 +116,6 @@ public class ThrowableSpecial : MonoBehaviour
         handJoint.xMotion = handJoint.yMotion = handJoint.zMotion = ConfigurableJointMotion.Locked;
 
         ConfigurableJointMotion _m = ConfigurableJointMotion.Locked;
-        ////if something else is already holding this, limit instead of locking the angular motion
-        //if (holdingHands.Count != 0) _m = ConfigurableJointMotion.Locked;
 
         handJoint.angularXMotion = handJoint.angularYMotion = handJoint.angularZMotion = _m;
 
@@ -118,6 +133,42 @@ public class ThrowableSpecial : MonoBehaviour
         holdingHands.Add(hand);
         holdingBodies.Add(holdingBody);
         holdingPoints.Add(holdingPoint);
+        holdingJoints.Add(handJoint);
+    }
+
+    //-------------------------------------------------
+    protected virtual void OnDetachedFromHand(Hand hand)
+    {
+
+        hand.HoverUnlock(null);
+
+        Vector3 velocity;
+        Vector3 angularVelocity;
+
+        GetReleaseVelocities(hand, out velocity, out angularVelocity);
+
+        for (int i = 0; i < rigidBodies.Count; i++)
+        {
+            rigidBodies[i].velocity = velocity;
+            rigidBodies[i].angularVelocity = angularVelocity;
+        }
+    }
+
+
+    public virtual void GetReleaseVelocities(Hand hand, out Vector3 velocity, out Vector3 angularVelocity)
+    {
+        hand.GetEstimatedPeakVelocities(out velocity, out angularVelocity);
+
+        //if (releaseVelocityStyle != ReleaseStyle.NoChange)
+        //{
+        //    float scaleFactor = 1.0f;
+        //    if (scaleReleaseVelocityThreshold > 0)
+        //    {
+        //        scaleFactor = Mathf.Clamp01(scaleReleaseVelocityCurve.Evaluate(velocity.magnitude / scaleReleaseVelocityThreshold));
+        //    }
+
+        //    velocity *= (scaleFactor * scaleReleaseVelocity);
+        //}
     }
 
 }
