@@ -1,13 +1,16 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Valve.VR.InteractionSystem;
 
 public class Attachment : MonoBehaviour
 {
     public Collider m_attachmentCollider;
     public Dictionary<Collider, ConfigurableJoint> m_connectedObjects = new Dictionary<Collider, ConfigurableJoint>();
     public ConnectionType m_connectionType;
+    public bool m_canAttach = true;
 
     // Start is called before the first frame update
     void Start()
@@ -18,33 +21,73 @@ public class Attachment : MonoBehaviour
     //attaching another object to this
     private void OnCollisionEnter(Collision other)
     {
-        print("colliding");
+        if (!m_canAttach) return;
         //ensure the other object can actually be attached to
         AttachableObject _att = other.transform.GetComponent<AttachableObject>();
         if (_att != null && !m_connectedObjects.ContainsKey(other.collider))
         {
             //point of contact between the attachment and the object
-            Vector3 _contactpoint = other.GetContact(0).point;
-            CreateAttachment(_att, other.collider, _contactpoint);
+            ContactPoint _contactpoint = other.GetContact(0);
 
             //ignore collisions in future between these objects as they're technically "the same"
             Physics.IgnoreCollision(m_attachmentCollider, other.collider, true);
+
+            CreateAttachment(_att, other.collider, _contactpoint);
+
+        }
+    }
+    private void HandHoverUpdate(Hand hand)
+    {
+        GrabTypes startingGrabType = hand.GetGrabStarting();
+
+        if (startingGrabType != GrabTypes.None)
+        {
+            print("should remove");
+            RemoveAllAttachments();
         }
     }
 
-    void CreateAttachment(AttachableObject otherAtt, Collider col, Vector3 contactPointWorld)
+    void RemoveAllAttachments()
+    {
+        ConfigurableJoint[] joints = GetComponents<ConfigurableJoint>();
+        foreach(ConfigurableJoint j in joints.ToList())
+        {
+            Destroy(j);
+        }
+        StartCoroutine(IgnoreNewCollisions());
+    }
+
+    private IEnumerator IgnoreNewCollisions()
+    {
+        m_canAttach = false;
+        yield return LateUpdateJoints();
+        yield return new WaitForSeconds(0.5f);
+        m_canAttach = true;
+    }
+
+    void CreateAttachment(AttachableObject otherAtt, Collider col, ContactPoint contactPointWorld)
     {
         ConfigurableJoint _j = gameObject.AddComponent<ConfigurableJoint>();
 
-        _j.anchor = transform.InverseTransformPoint(contactPointWorld) / 1.2f;
+        float inset = Vector3.Distance(contactPointWorld.point,transform.TransformPoint(GetComponentInChildren<Rigidbody>().centerOfMass)) / 2f;
+        Vector3 offset = (contactPointWorld.normal.normalized * inset / 8f);
+
+        //don't autosnap when there's already something
+        if (m_connectedObjects.Count != 0) offset = Vector3.zero;
+
+        Vector3 _attPoint = (contactPointWorld.point - offset);
+
+        transform.position = _attPoint;
+
+
+        _j.anchor = transform.InverseTransformPoint(_attPoint);
         _j.connectedBody = otherAtt.GetComponent<Rigidbody>(); 
 
         //anchor joint to other's position
         _j.autoConfigureConnectedAnchor = false;
-        //_j.axis = Vector3.zero;
 
         //set joint position to attachment point position
-        _j.connectedAnchor = otherAtt.transform.InverseTransformPoint(contactPointWorld) / 1.2f;
+        _j.connectedAnchor = otherAtt.transform.InverseTransformPoint(_attPoint);
 
         //lock off motion
         _j.xMotion = ConfigurableJointMotion.Locked;
@@ -53,7 +96,7 @@ public class Attachment : MonoBehaviour
 
         if(m_connectionType == ConnectionType.BallJoint && m_connectedObjects.Count == 0)
         {
-            transform.position = contactPointWorld;
+            //transform.position = contactPointWorld.point;
             //_j.anchor = Vector3.zero;
             _j.angularXMotion = _j.angularYMotion = _j.angularZMotion = ConfigurableJointMotion.Locked;
         }
@@ -61,13 +104,19 @@ public class Attachment : MonoBehaviour
         if (m_connectionType == ConnectionType.Glue)
         {
             _j.angularXMotion = _j.angularYMotion = _j.angularZMotion = ConfigurableJointMotion.Locked;
+            JointDrive _d = new JointDrive
+            {
+                positionSpring = 1000f,
+                positionDamper = 1000f
+            };
+            _j.angularXDrive = _j.angularYZDrive = _d;
         }
 
         //_j.configuredInWorldSpace = true;
         _j.enableCollision = true;
 
         //break force
-        _j.breakForce = 450f;
+        _j.breakForce = 750f;
 
         m_connectedObjects.Add(col, _j);
     }

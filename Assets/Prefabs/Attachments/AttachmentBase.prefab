@@ -20,7 +20,7 @@ GameObject:
   - component: {fileID: 973051395098028911}
   - component: {fileID: 973051395098028910}
   m_Layer: 0
-  m_Name: Attachment
+  m_Name: AttachmentBase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -267,7 +267,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_attachmentCollider: {fileID: 973051395098028908}
-  m_objects: []
   m_connectionType: 0
 --- !u!135 &973051395098028908
 SphereCollider:
