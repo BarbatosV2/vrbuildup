@@ -23,20 +23,18 @@ public class ThrowableSpecial : MonoBehaviour
         velocityEstimator = GetComponent<VelocityEstimator>();
     }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        for (int i = 0; i < holdingHands.Count; i++)
-        {
-            Gizmos.DrawSphere(holdingHands[i].transform.position, 0.05f);
-            //Gizmos.DrawSphere(holdingBodies[i].transform.TransformPoint(holdingPoints[i]), 0.05f);
-        }
-    }
+    //private void OnDrawGizmos()
+    //{
+    //    Gizmos.color = Color.red;
+    //    for (int i = 0; i < holdingHands.Count; i++)
+    //    {
+    //        Gizmos.DrawSphere(holdingHands[i].transform.position, 0.05f);
+    //    }
+    //}
 
     // Update is called once per frame
     void Update()  
     {
-
         for (int i = 0; i < holdingHands.Count; i++)
         {
             if(holdingHands.Count > 1)
@@ -51,9 +49,11 @@ public class ThrowableSpecial : MonoBehaviour
                 continue;
             }
 
-            holdingJoints[i].angularXMotion = ConfigurableJointMotion.Limited;
-            holdingJoints[i].angularYMotion = holdingJoints[i].angularZMotion = 
-                (holdingHands.Count > 1) ? ConfigurableJointMotion.Free : ConfigurableJointMotion.Locked;
+            //limit the x-rotation and lock Y and Z if holding with two hands
+            //reasoning behind this is because X rotation (lateral rotation) is often not wanted when using two hands to grab
+            //but still can happen, obviously, so limit it to ~60 degrees
+            holdingJoints[i].angularXMotion = (holdingHands.Count > 1) ? ConfigurableJointMotion.Limited : ConfigurableJointMotion.Locked;
+            holdingJoints[i].angularYMotion = holdingJoints[i].angularZMotion = (holdingHands.Count > 1) ? ConfigurableJointMotion.Free : ConfigurableJointMotion.Locked;
 
             if (holdingHands[i].IsGrabEnding(this.gameObject))
             {
@@ -158,7 +158,7 @@ public class ThrowableSpecial : MonoBehaviour
         if(true)//if(holdingHands.Count == 0)
         {
             Vector3 moveVector = hand.transform.position - closestToMesh;
-            print(moveVector);
+            //print(moveVector);
             holdingBody.transform.position += moveVector;
         }
 
@@ -171,8 +171,6 @@ public class ThrowableSpecial : MonoBehaviour
             limit = 50f
         };
         handJoint.lowAngularXLimit = handJoint.angularYLimit = handJoint.angularZLimit = _l;
-
-
 
         hand.AttachObject(this.gameObject, startingGrabType, m_attachmentFlags);
 
