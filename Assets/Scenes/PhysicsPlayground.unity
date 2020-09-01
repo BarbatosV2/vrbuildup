@@ -718,7 +718,7 @@ GameObject:
   m_Component:
   - component: {fileID: 171643953}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Table + Objects
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3757,6 +3757,25 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 41769c2c9c06855448dda3274b8661e8, type: 3}
+--- !u!1 &1661039981 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8942760385471894836, guid: 42b0d8c9883a74145b838e0065d03781,
+    type: 3}
+  m_PrefabInstance: {fileID: 1170270654}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1661039982
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1661039981}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcda16923f32c4c48ba89573e4bad004, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  panel: {fileID: 0}
 --- !u!1001 &1681963943
 PrefabInstance:
   m_ObjectHideFlags: 0
