@@ -5,6 +5,12 @@ using System.Linq;
 using UnityEngine;
 using Valve.VR.InteractionSystem;
 
+public enum ConnectionType
+{ 
+    BallJoint,
+    Glue
+}
+
 public class Attachment : MonoBehaviour
 {
     public Collider m_attachmentCollider;
