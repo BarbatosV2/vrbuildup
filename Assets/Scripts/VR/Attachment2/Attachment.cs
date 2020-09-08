@@ -14,7 +14,7 @@ public enum ConnectionType
 public class Attachment : MonoBehaviour
 {
     public Collider m_attachmentCollider;
-    public Dictionary<Collider, ConfigurableJoint> m_connectedObjects = new Dictionary<Collider, ConfigurableJoint>();
+    public Dictionary<AttachableObject, ConfigurableJoint> m_connectedObjects = new Dictionary<AttachableObject, ConfigurableJoint>();
     public ConnectionType m_connectionType;
     public bool m_canAttach = true;
 
@@ -30,7 +30,7 @@ public class Attachment : MonoBehaviour
         if (!m_canAttach) return;
         //ensure the other object can actually be attached to
         AttachableObject _att = other.transform.GetComponent<AttachableObject>();
-        if (_att != null && !m_connectedObjects.ContainsKey(other.collider))
+        if (_att != null && !m_connectedObjects.ContainsKey(_att))
         {
             //point of contact between the attachment and the object
             ContactPoint _contactpoint = other.GetContact(0);
@@ -129,7 +129,8 @@ public class Attachment : MonoBehaviour
         //break force
         _j.breakForce = 750f;
 
-        m_connectedObjects.Add(col, _j);
+        m_connectedObjects.Add(otherAtt, _j);
+        otherAtt.m_attachments.Add(this);
     }
 
     private void OnJointBreak(float breakForce)
@@ -145,10 +146,12 @@ public class Attachment : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
         //find all objects' collider without the associated joint (i.e. the joint(s) that broke)
-        foreach (Collider disc in m_connectedObjects.Where(o => (o.Value == null)).Select(o => o.Key).ToList())
+        foreach (Collider disc in m_connectedObjects.Where(o => (o.Value == null)).Select(o => o.Key.GetComponent<Collider>()).ToList())
         {
+            AttachableObject a = disc.GetComponentInParent<AttachableObject>();
+            if(a) a.m_attachments.Remove(this);
             Physics.IgnoreCollision(m_attachmentCollider, disc, false);
-            m_connectedObjects.Remove(disc);
+            m_connectedObjects.Remove(a);
         }
     }
 
