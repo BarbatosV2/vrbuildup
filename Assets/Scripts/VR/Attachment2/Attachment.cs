@@ -5,6 +5,12 @@ using System.Linq;
 using UnityEngine;
 using Valve.VR.InteractionSystem;
 
+public enum ConnectionType
+{ 
+    BallJoint,
+    Glue
+}
+
 public class Attachment : MonoBehaviour
 {
     public Collider m_attachmentCollider;
@@ -67,18 +73,23 @@ public class Attachment : MonoBehaviour
 
     void CreateAttachment(AttachableObject otherAtt, Collider col, ContactPoint contactPointWorld)
     {
+        //create the configurable joint between the attachment and the object
         ConfigurableJoint _j = gameObject.AddComponent<ConfigurableJoint>();
 
-        float inset = Vector3.Distance(contactPointWorld.point,transform.TransformPoint(GetComponentInChildren<Rigidbody>().centerOfMass)) / 2f;
-        Vector3 offset = (contactPointWorld.normal.normalized * inset / 8f);
+        //inset the attachment if necessary
+        Vector3 _attPoint = (contactPointWorld.point);
+        if(m_connectionType != ConnectionType.BallJoint)
+        {
+            float inset = Vector3.Distance(contactPointWorld.point, transform.TransformPoint(GetComponentInChildren<Rigidbody>().centerOfMass)) / 2f;
+            Vector3 offset = (contactPointWorld.normal.normalized * inset / 8f);
 
-        //don't autosnap when there's already something
-        if (m_connectedObjects.Count != 0) offset = Vector3.zero;
+            //don't autosnap when there's already something
+            if (m_connectedObjects.Count != 0) offset = Vector3.zero;
 
-        Vector3 _attPoint = (contactPointWorld.point - offset);
+            _attPoint = (contactPointWorld.point - offset);
 
-        transform.position = _attPoint;
-
+            transform.position = _attPoint;
+        }
 
         _j.anchor = transform.InverseTransformPoint(_attPoint);
         _j.connectedBody = otherAtt.GetComponent<Rigidbody>(); 
