@@ -11,6 +11,8 @@ public class AttachableObject : MonoBehaviour
     List<Vector3> m_forceVectors = new List<Vector3>();
     Rigidbody rigidBody;
 
+    public List<GameObject> m_connectedObjects;
+
     //private void OnCollisionStay(Collision collision)
     //{
     //    Vector3 v = collision.impulse / Time.fixedDeltaTime;
@@ -51,27 +53,29 @@ public class AttachableObject : MonoBehaviour
         //m_forceVectors.Clear();
     }
 
-    public List<GameObject> GetWholeObject()
+    public List<GameObject> GetConnectedObjects(List<GameObject> _o)
     {
-        //base list
-        List<GameObject> _objects = new List<GameObject> { gameObject };
+        if(_o == null) _o = new List<GameObject> { gameObject };
 
-        //recursive case: go to each attachment, and find each (trying to avoid duplicates where possible)
         foreach (Attachment a in m_attachments)
         {
-            if(!_objects.Contains(a.gameObject)) _objects.Add(a.gameObject);
+            if (!_o.Contains(a.gameObject)) _o.Add(a.gameObject);
             foreach (AttachableObject _ao in a.m_connectedObjects.Keys)
             {
-                if (!_objects.Contains(_ao.gameObject))
-                    _objects.AddRange(_ao.GetWholeObject());
+                if (!_o.Contains(_ao.gameObject))
+                    _o.AddRange(_ao.GetConnectedObjects(_o));
             }
         }
 
-        return _objects.Distinct().ToList();
+        return _o;
     }
-
+   
     // Update is called once per frame
     void Update()
     {
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            m_connectedObjects = GetConnectedObjects(null);
+        }
     }
 }
