@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Valve.VR;
+using Valve.VR.InteractionSystem;
 
 public class AttachableObject : MonoBehaviour
 {
@@ -11,7 +12,10 @@ public class AttachableObject : MonoBehaviour
     List<Vector3> m_forceVectors = new List<Vector3>();
     Rigidbody rigidBody;
 
+    public Hand m_heldHand;
+
     public List<GameObject> m_connectedObjects;
+    public Vector3 m_lastPosition;
 
     //private void OnCollisionStay(Collision collision)
     //{
@@ -23,6 +27,7 @@ public class AttachableObject : MonoBehaviour
     private void Awake()
     {
         rigidBody = GetComponent<Rigidbody>();
+        Teleport.Player.AddListener(PrintTP);
     }
 
     // Start is called before the first frame update
@@ -31,9 +36,36 @@ public class AttachableObject : MonoBehaviour
 
     }
 
+    private void HandHoverUpdate(Hand hand)
+    {
+        GrabTypes startingGrabType = hand.GetGrabStarting();
+
+        if (startingGrabType != GrabTypes.None)
+        {
+            m_heldHand = hand;
+        }
+    }
+
+    void PrintTP(TeleportMarkerBase b)
+    {
+        if(m_heldHand != null)
+        {
+            m_connectedObjects.Clear();
+            FindFullObject(this, m_connectedObjects);
+
+            // actually move the object(s)
+            Vector3 moveDelta = transform.position - m_lastPosition;
+            foreach(GameObject go in m_connectedObjects)
+            {
+                if (go == gameObject) continue;
+                go.transform.position += moveDelta;
+            }
+        }
+    }
+
     private void LateUpdate()
     {
-      
+        m_lastPosition = transform.position;
     }
 
     private void FixedUpdate()
@@ -53,29 +85,31 @@ public class AttachableObject : MonoBehaviour
         //m_forceVectors.Clear();
     }
 
-    public List<GameObject> GetConnectedObjects(List<GameObject> _o)
+    public void FindFullObject(AttachableObject start, List<GameObject> result)
     {
-        if(_o == null) _o = new List<GameObject> { gameObject };
+        result.Add(start.gameObject);
 
-        foreach (Attachment a in m_attachments)
+        foreach (Attachment a in start.m_attachments)
         {
-            if (!_o.Contains(a.gameObject)) _o.Add(a.gameObject);
-            foreach (AttachableObject _ao in a.m_connectedObjects.Keys)
+            if (result.Contains(a.gameObject)) continue;
+
+            result.Add(a.gameObject);
+
+            foreach (AttachableObject ao in a.m_connectedObjects.Keys)
             {
-                if (!_o.Contains(_ao.gameObject))
-                    _o.AddRange(_ao.GetConnectedObjects(_o));
+                if (result.Contains(ao.gameObject)) continue;
+
+                FindFullObject(ao, result);
             }
         }
-
-        return _o;
     }
    
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Space))
+        if (m_heldHand && m_heldHand.IsGrabEnding(gameObject))
         {
-            m_connectedObjects = GetConnectedObjects(null);
+            m_heldHand = null;
         }
     }
 }

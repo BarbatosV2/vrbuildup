@@ -141,7 +141,7 @@ public class Attachment : MonoBehaviour
 
     /// <summary>
     /// have to do this after the frame ends as joints don't reliably break on the same frame as OnJointBreak is called
-    /// </summary>
+    /// </summary> 
     IEnumerator LateUpdateJoints()
     {
         yield return new WaitForEndOfFrame();
