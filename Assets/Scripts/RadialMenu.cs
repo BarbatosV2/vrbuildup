@@ -1,12 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Valve.VR.InteractionSystem;
 
 public class RadialMenu : MonoBehaviour
 {
     [Header("Scene")]
     public Transform selectionTransform = null;
     public Transform cursorTransform = null;
+
+    public Hand interactingHand;
 
     [Header("Events")]
     public RadialSection top = null;
@@ -22,6 +25,7 @@ public class RadialMenu : MonoBehaviour
 
     private void Awake()
     {
+        interactingHand = transform.parent.GetComponent<Hand>();
         CreateAndSetupSections();
     }
 

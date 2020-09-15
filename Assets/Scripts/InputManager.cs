@@ -16,14 +16,14 @@ public class InputManager : MonoBehaviour
     private void Awake()
     {
         touch.onChange += Touch;
-        press.onStateUp += PressRelease;
+        press.onStateDown += PressRelease;
         touchPosition.onAxis += Position;
     }
 
     private void OnDestroy()
     {
         touch.onChange -= Touch;
-        press.onStateUp -= PressRelease;
+        press.onStateDown -= PressRelease;
         touchPosition.onAxis -= Position;
     }
 
@@ -34,12 +34,25 @@ public class InputManager : MonoBehaviour
 
     private void Touch(SteamVR_Action_Boolean formAction, SteamVR_Input_Sources fromSource, bool newState)
     {
-        radialMenu.Show(newState);
+        if (radialMenu.interactingHand.currentAttachedObject == null)
+        {
+            radialMenu.Show(newState);
+            
+        }
+        else
+        {
+            radialMenu.Show(false);
+        }
     }
 
     private void PressRelease(SteamVR_Action_Boolean formAction, SteamVR_Input_Sources fromSource)
     {
-        radialMenu.ActivateHighlightedSection();
+        
+        if (radialMenu.gameObject.activeSelf)
+        {
+            radialMenu.ActivateHighlightedSection();
+        }
+        
     }
 
 
