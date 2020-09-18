@@ -8,8 +8,8 @@ using Valve.VR.InteractionSystem;
 public class AttachableObject : MonoBehaviour
 {
     public List<Attachment> m_attachments;
-    float m_breakForce = 600f;
-    List<Vector3> m_forceVectors = new List<Vector3>();
+    //float m_breakForce = 600f;
+    //List<Vector3> m_forceVectors = new List<Vector3>();
     Rigidbody rigidBody;
 
     public Hand m_heldHand;
@@ -27,7 +27,6 @@ public class AttachableObject : MonoBehaviour
     private void Awake()
     {
         rigidBody = GetComponent<Rigidbody>();
-        Teleport.Player.AddListener(PrintTP);
     }
 
     // Start is called before the first frame update
@@ -43,13 +42,15 @@ public class AttachableObject : MonoBehaviour
         if (startingGrabType != GrabTypes.None)
         {
             m_heldHand = hand;
+            Teleport.Player.AddListener(TeleportBringAttachedObjects);
         }
     }
 
-    void PrintTP(TeleportMarkerBase b)
+    void TeleportBringAttachedObjects(TeleportMarkerBase b)
     {
         if(m_heldHand != null)
         {
+            // get the object w/ all the connections
             m_connectedObjects.Clear();
             FindFullObject(this, m_connectedObjects);
 
@@ -110,6 +111,7 @@ public class AttachableObject : MonoBehaviour
         if (m_heldHand && m_heldHand.IsGrabEnding(gameObject))
         {
             m_heldHand = null;
+            Teleport.Player.RemoveListener(TeleportBringAttachedObjects);
         }
     }
 }

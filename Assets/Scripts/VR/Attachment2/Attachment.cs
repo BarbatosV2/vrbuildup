@@ -148,6 +148,7 @@ public class Attachment : MonoBehaviour
         //find all objects' collider without the associated joint (i.e. the joint(s) that broke)
         foreach (Collider disc in m_connectedObjects.Where(o => (o.Value == null)).Select(o => o.Key.GetComponent<Collider>()).ToList())
         {
+            if (disc == null) continue;
             AttachableObject a = disc.GetComponentInParent<AttachableObject>();
             if(a) a.m_attachments.Remove(this);
             Physics.IgnoreCollision(m_attachmentCollider, disc, false);
