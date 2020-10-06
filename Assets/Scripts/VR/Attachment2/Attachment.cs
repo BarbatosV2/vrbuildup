@@ -63,7 +63,7 @@ public class Attachment : MonoBehaviour
         StartCoroutine(IgnoreNewCollisions());
     }
 
-    private IEnumerator IgnoreNewCollisions()
+    public IEnumerator IgnoreNewCollisions()
     {
         m_canAttach = false;
         yield return LateUpdateJoints();
