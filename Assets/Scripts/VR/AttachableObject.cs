@@ -67,6 +67,9 @@ public class AttachableObject : MonoBehaviour
             if (go == gameObject) continue;
             Attachment a = go.GetComponent<Attachment>();
             a?.StartCoroutine(a?.IgnoreNewCollisions());
+            Rigidbody r = go.GetComponent<Rigidbody>();
+            r.velocity = Vector3.zero;
+            r.angularVelocity = Vector3.zero;
         }
         yield return new WaitForEndOfFrame();
 

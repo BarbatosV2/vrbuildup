@@ -19,7 +19,7 @@ GameObject:
   - component: {fileID: 973051395098028908}
   - component: {fileID: 973051395098028911}
   - component: {fileID: 973051395098028910}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: AttachmentBase
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -13,7 +13,6 @@ public class WinCondition : MonoBehaviour
 
     [Tooltip("Lose instead of win when this condition is met.")]
     public bool m_invertCondition;
-
     
 
 
