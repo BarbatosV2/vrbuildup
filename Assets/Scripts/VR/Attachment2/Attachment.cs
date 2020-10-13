@@ -83,14 +83,6 @@ public class Attachment : MonoBehaviour
         Vector3 norm = Vector3.zero;
         j.anchor = Vector3.zero;
 
-        if(Physics.Raycast(transform.position, (col.transform.position - transform.position), out RaycastHit hit, 300f, ~LayerMask.GetMask("Attachment")))
-        {
-            print("found!");
-            j.connectedAnchor = hit.transform.InverseTransformPoint(hit.point);
-            transform.position = Vector3.MoveTowards(hit.point, hit.point + (hit.normal*10f), collider.bounds.size.z*1.5f);
-            //norm = hit.normal;
-            //transform.rotation = Quaternion.Euler(Vector3.Cross(-hit.normal, Vector3.up));
-        }
 
 
         //transform.rotation = Quaternion.FromToRotation(Vector3.forward, norm);
@@ -117,6 +109,26 @@ public class Attachment : MonoBehaviour
 
             transform.position = _attPoint;
         }
+
+        if(m_connectionType == ConnectionType.GearMotor)
+        {
+            if (Physics.Raycast(transform.position, (contactPointWorld.point - transform.position), out RaycastHit hit, 300f, ~LayerMask.GetMask("Attachment")))
+            {
+                _j.connectedAnchor = hit.transform.InverseTransformPoint(hit.point);
+                
+                //transform.position = Vector3.MoveTowards(hit.point, hit.point + hit.normal, collider.bounds.size.z*1.5f);
+                Vector3 pos = hit.point + (hit.normal * (((BoxCollider)collider).size.z * 0.95f));
+                transform.position = pos;
+
+                _attPoint = pos;
+
+                transform.rotation = Quaternion.FromToRotation(Vector3.forward, hit.normal);// * transform.rotation;
+
+                //norm = hit.normal;
+                //transform.rotation = Quaternion.Euler(Vector3.Cross(-hit.normal, Vector3.up));
+            }
+        }
+
 
         _j.anchor = transform.InverseTransformPoint(_attPoint);
         _j.connectedBody = otherAtt.GetComponent<Rigidbody>(); 
@@ -149,7 +161,14 @@ public class Attachment : MonoBehaviour
                 };
                 _j.angularXDrive = _j.angularYZDrive = _d;
                 break;
-            case ConnectionType.GearMotor: CreateGearMotor(contactPointWorld, col, _j); break;
+            case ConnectionType.GearMotor:
+                CreateGearMotor(contactPointWorld, col, _j);
+                if (m_connectedObjects.Count >= 1)
+                {
+                    otherAtt.transform.SetParent(transform);
+                    otherAtt.GetComponent<Rigidbody>().useGravity = false;
+                }
+                break;
             default: break;
         }
 
@@ -157,7 +176,7 @@ public class Attachment : MonoBehaviour
         _j.enableCollision = true;
 
         //break force
-        _j.breakForce = 750f;
+        //_j.breakForce = 750f;
 
         if (m_connectedObjects.Count == 0) m_firstJoint = _j;
         m_connectedObjects.Add(otherAtt, _j);
@@ -193,7 +212,6 @@ public class Attachment : MonoBehaviour
     {
         if(m_connectionType == ConnectionType.GearMotor && m_connectedObjects.Count >= 2)
         {
-            print("what");
             // unlock the Z rotation (spin!)
             m_firstJoint.angularZMotion = ConfigurableJointMotion.Free;
             rigidBody.AddTorque(transform.forward * 3f);//MoveRotation(Quaternion.Euler(transform.rotation.eulerAngles + new Vector3(0, 0, Time.deltaTime * 15f)));
