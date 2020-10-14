@@ -10,7 +10,9 @@ public class AttachableObject : MonoBehaviour
     public List<Attachment> m_attachments;
     //float m_breakForce = 600f;
     //List<Vector3> m_forceVectors = new List<Vector3>();
-    Rigidbody rigidBody;
+
+    public ArticulationBody m_artBody;
+
 
     public Hand m_heldHand;
 
@@ -26,7 +28,7 @@ public class AttachableObject : MonoBehaviour
 
     private void Awake()
     {
-        rigidBody = GetComponent<Rigidbody>();
+        m_artBody = GetComponent<ArticulationBody>();
     }
 
     // Start is called before the first frame update
