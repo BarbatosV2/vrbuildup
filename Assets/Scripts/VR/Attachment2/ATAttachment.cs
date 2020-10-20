@@ -25,7 +25,8 @@ public class ATAttachment : MonoBehaviour
         
         if (_att != null)
         {
-            //won't attach to transform's 
+            
+
             //@TODO: make traditional-joint attachments work
             if (_att.transform.IsChildOf(transform.root)) return;
 
