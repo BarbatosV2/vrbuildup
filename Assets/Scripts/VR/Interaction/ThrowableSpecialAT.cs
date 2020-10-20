@@ -4,7 +4,7 @@ using UnityEngine;
 using Valve.VR;
 using Valve.VR.InteractionSystem;
 
-public class ThrowableSpecial : MonoBehaviour
+public class ThrowableSpecialAT : MonoBehaviour
 {
     public Hand.AttachmentFlags m_attachmentFlags;
     protected VelocityEstimator velocityEstimator;
@@ -19,7 +19,7 @@ public class ThrowableSpecial : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        GetComponentsInChildren<Rigidbody>(rigidBodies);
+        rigidBodies.Add(GetComponentInParent<Rigidbody>());
         velocityEstimator = GetComponent<VelocityEstimator>();
     }
 
@@ -119,7 +119,7 @@ public class ThrowableSpecial : MonoBehaviour
         Rigidbody holdingBody = null;
         Vector3 holdingPoint = Vector3.zero;
 
-        // The hand should grab onto the nearest rigid body
+        //The hand should grab onto the nearest rigid body
         float closestDistance = float.MaxValue;
         for (int i = 0; i < rigidBodies.Count; i++)
         {
@@ -130,6 +130,8 @@ public class ThrowableSpecial : MonoBehaviour
                 closestDistance = distance;
             }
         }
+
+
 
         // Couldn't grab onto a body
         if (holdingBody == null)
