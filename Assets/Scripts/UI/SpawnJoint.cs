@@ -12,7 +12,10 @@ public class SpawnJoint : MonoBehaviour
     {
         print("stop");
         GameObject ballJoint = Instantiate(attachmentPrefabs[0], transform.position, Quaternion.identity);
-        radialMenu.interactingHand.AttachObject(ballJoint, GrabTypes.Grip);
+       // ballJoint.GetComponent<Rigidbody>().useGravity = false;
+        radialMenu.interactingHand.AttachObject(ballJoint, GrabTypes.Trigger);
+        
+        print("why");
     }
 
    

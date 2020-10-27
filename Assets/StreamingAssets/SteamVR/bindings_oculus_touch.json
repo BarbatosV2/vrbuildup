@@ -215,9 +215,6 @@
             },
             {
                "inputs" : {
-                  "click" : {
-                     "output" : "/actions/default/in/select"
-                  },
                   "pull" : {
                      "output" : "/actions/default/in/squeeze"
                   }
@@ -239,14 +236,14 @@
             },
             {
                "inputs" : {
-                  "click" : {
-                     "output" : "/actions/default/in/activatemenu"
-                  },
-                  "position" : {
-                     "output" : "/actions/default/in/menuselectionposition"
+                  "north" : {
+                     "output" : "/actions/default/in/teleport"
                   }
                },
-               "mode" : "joystick",
+               "mode" : "dpad",
+               "parameters" : {
+                  "sub_mode" : "touch"
+               },
                "path" : "/user/hand/right/input/joystick"
             }
          ]
