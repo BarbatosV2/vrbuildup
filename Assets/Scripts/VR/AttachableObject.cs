@@ -50,18 +50,38 @@ public class AttachableObject : MonoBehaviour
     {
         if(m_heldHand != null)
         {
-            // get the object w/ all the connections
-            m_connectedObjects.Clear();
-            FindFullObject(this, m_connectedObjects);
-
-            // actually move the object(s)
-            Vector3 moveDelta = transform.position - m_lastPosition;
-            foreach(GameObject go in m_connectedObjects)
-            {
-                if (go == gameObject) continue;
-                go.transform.position += moveDelta;
-            }
+            StartCoroutine(TeleportBringFullObject());
         }
+    }
+
+    IEnumerator TeleportBringFullObject()
+    {
+        // get the object w/ all the connections
+        m_connectedObjects.Clear();
+        FindFullObject(this, m_connectedObjects);
+
+        // actually move the object(s)
+        Vector3 moveDelta = transform.position - m_lastPosition;
+        foreach (GameObject go in m_connectedObjects)
+        {
+            if (go == gameObject) continue;
+            Attachment a = go.GetComponent<Attachment>();
+            a?.StartCoroutine(a?.IgnoreNewCollisions());
+            Rigidbody r = go.GetComponent<Rigidbody>();
+            r.velocity = Vector3.zero;
+            r.angularVelocity = Vector3.zero;
+        }
+        yield return new WaitForEndOfFrame();
+
+        foreach (GameObject go in m_connectedObjects)
+        {
+            if (go == gameObject) continue;
+            Rigidbody r = go.GetComponent<Rigidbody>();
+            r.position += moveDelta;
+            r.velocity = Vector3.zero;
+            r.angularVelocity = Vector3.zero;
+        }
+
     }
 
     private void LateUpdate()

@@ -8,20 +8,27 @@ using Valve.VR.InteractionSystem;
 public enum ConnectionType
 { 
     BallJoint,
-    Glue
+    Glue,
+    GearMotor
 }
 
 public class Attachment : MonoBehaviour
 {
     public Collider m_attachmentCollider;
     public Dictionary<AttachableObject, ConfigurableJoint> m_connectedObjects = new Dictionary<AttachableObject, ConfigurableJoint>();
+    private ConfigurableJoint m_firstJoint;
+
+    private Collider collider;
+    private Rigidbody rigidBody;
+
     public ConnectionType m_connectionType;
     public bool m_canAttach = true;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        collider = GetComponent<Collider>();
+        rigidBody = GetComponent<Rigidbody>();
     }
 
     //attaching another object to this
@@ -38,7 +45,7 @@ public class Attachment : MonoBehaviour
             //ignore collisions in future between these objects as they're technically "the same"
             Physics.IgnoreCollision(m_attachmentCollider, other.collider, true);
 
-            CreateAttachment(_att, other.collider, _contactpoint);
+            CreateAttachment(_att, other, _contactpoint);
 
         }
     }
@@ -63,7 +70,7 @@ public class Attachment : MonoBehaviour
         StartCoroutine(IgnoreNewCollisions());
     }
 
-    private IEnumerator IgnoreNewCollisions()
+    public IEnumerator IgnoreNewCollisions()
     {
         m_canAttach = false;
         yield return LateUpdateJoints();
@@ -71,14 +78,26 @@ public class Attachment : MonoBehaviour
         m_canAttach = true;
     }
 
-    void CreateAttachment(AttachableObject otherAtt, Collider col, ContactPoint contactPointWorld)
+    void CreateGearMotor(ContactPoint contactPointWorld, Collision col, ConfigurableJoint j)
+    {
+        Vector3 norm = Vector3.zero;
+        j.anchor = Vector3.zero;
+
+
+
+        //transform.rotation = Quaternion.FromToRotation(Vector3.forward, norm);
+
+        j.angularXMotion = j.angularYMotion = j.angularZMotion = ConfigurableJointMotion.Locked;
+    }
+
+    void CreateAttachment(AttachableObject otherAtt, Collision col, ContactPoint contactPointWorld)
     {
         //create the configurable joint between the attachment and the object
         ConfigurableJoint _j = gameObject.AddComponent<ConfigurableJoint>();
 
         //inset the attachment if necessary
         Vector3 _attPoint = (contactPointWorld.point);
-        if(m_connectionType != ConnectionType.BallJoint)
+        if(m_connectionType == ConnectionType.Glue)
         {
             float inset = Vector3.Distance(contactPointWorld.point, transform.TransformPoint(GetComponentInChildren<Rigidbody>().centerOfMass)) / 2f;
             Vector3 offset = (contactPointWorld.normal.normalized * inset / 8f);
@@ -90,6 +109,26 @@ public class Attachment : MonoBehaviour
 
             transform.position = _attPoint;
         }
+
+        if(m_connectionType == ConnectionType.GearMotor)
+        {
+            if (Physics.Raycast(transform.position, (contactPointWorld.point - transform.position), out RaycastHit hit, 300f, ~LayerMask.GetMask("Attachment")))
+            {
+                _j.connectedAnchor = hit.transform.InverseTransformPoint(hit.point);
+                
+                //transform.position = Vector3.MoveTowards(hit.point, hit.point + hit.normal, collider.bounds.size.z*1.5f);
+                Vector3 pos = hit.point + (hit.normal * (((BoxCollider)collider).size.z * 0.95f));
+                transform.position = pos;
+
+                _attPoint = pos;
+
+                transform.rotation = Quaternion.FromToRotation(Vector3.forward, hit.normal);// * transform.rotation;
+
+                //norm = hit.normal;
+                //transform.rotation = Quaternion.Euler(Vector3.Cross(-hit.normal, Vector3.up));
+            }
+        }
+
 
         _j.anchor = transform.InverseTransformPoint(_attPoint);
         _j.connectedBody = otherAtt.GetComponent<Rigidbody>(); 
@@ -105,30 +144,41 @@ public class Attachment : MonoBehaviour
         _j.yMotion = ConfigurableJointMotion.Locked;
         _j.zMotion = ConfigurableJointMotion.Locked;
 
-        if(m_connectionType == ConnectionType.BallJoint && m_connectedObjects.Count == 0)
+        switch(m_connectionType)
         {
-            //transform.position = contactPointWorld.point;
-            //_j.anchor = Vector3.zero;
-            _j.angularXMotion = _j.angularYMotion = _j.angularZMotion = ConfigurableJointMotion.Locked;
-        }
-
-        if (m_connectionType == ConnectionType.Glue)
-        {
-            _j.angularXMotion = _j.angularYMotion = _j.angularZMotion = ConfigurableJointMotion.Locked;
-            JointDrive _d = new JointDrive
-            {
-                positionSpring = 1000f,
-                positionDamper = 1000f
-            };
-            _j.angularXDrive = _j.angularYZDrive = _d;
+            case ConnectionType.BallJoint:
+                if (m_connectedObjects.Count == 0)
+                {
+                    _j.angularXMotion = _j.angularYMotion = _j.angularZMotion = ConfigurableJointMotion.Locked;
+                }
+                break;
+            case ConnectionType.Glue:
+                _j.angularXMotion = _j.angularYMotion = _j.angularZMotion = ConfigurableJointMotion.Locked;
+                JointDrive _d = new JointDrive
+                {
+                    positionSpring = 1000f,
+                    positionDamper = 1000f
+                };
+                _j.angularXDrive = _j.angularYZDrive = _d;
+                break;
+            case ConnectionType.GearMotor:
+                CreateGearMotor(contactPointWorld, col, _j);
+                if (m_connectedObjects.Count >= 1)
+                {
+                    otherAtt.transform.SetParent(transform);
+                    otherAtt.GetComponent<Rigidbody>().useGravity = false;
+                }
+                break;
+            default: break;
         }
 
         //_j.configuredInWorldSpace = true;
         _j.enableCollision = true;
 
         //break force
-        _j.breakForce = 750f;
+        //_j.breakForce = 750f;
 
+        if (m_connectedObjects.Count == 0) m_firstJoint = _j;
         m_connectedObjects.Add(otherAtt, _j);
         otherAtt.m_attachments.Add(this);
     }
@@ -151,14 +201,20 @@ public class Attachment : MonoBehaviour
             if (disc == null) continue;
             AttachableObject a = disc.GetComponentInParent<AttachableObject>();
             if(a) a.m_attachments.Remove(this);
+            yield return new WaitForEndOfFrame();
             Physics.IgnoreCollision(m_attachmentCollider, disc, false);
             m_connectedObjects.Remove(a);
         }
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        
+        if(m_connectionType == ConnectionType.GearMotor && m_connectedObjects.Count >= 2)
+        {
+            // unlock the Z rotation (spin!)
+            m_firstJoint.angularZMotion = ConfigurableJointMotion.Free;
+            rigidBody.AddTorque(transform.forward * 3f);//MoveRotation(Quaternion.Euler(transform.rotation.eulerAngles + new Vector3(0, 0, Time.deltaTime * 15f)));
+        }
     }
 }
